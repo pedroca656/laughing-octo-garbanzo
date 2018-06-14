@@ -70,8 +70,9 @@ public class Partida {
 		
 		
 		Carta aux = Bar.compraCarta();
+                //ATUALIZADO: codigo atualizado para Coringa +4 e coringa normal
 		if(aux.getNumeracao().length > 1) {
-			if(aux.getNumeracao()[1] == '4') {
+			if(aux.getNumeracao()[0] == 'C') {
 				descartes.push(aux);
 				while(true) {
 					aux = Bar.compraCarta();
@@ -91,9 +92,10 @@ public class Partida {
 			J1Compra2();
 			vezJ1 = !vezJ1;
 		}
-		if(aux.getNumeracao()[0] == 'C') {
-			primeiraCartaCoringa = true;
-		}
+                //ATUALIZADO: codigo retirado
+		//if(aux.getNumeracao()[0] == 'C') {
+		//	primeiraCartaCoringa = true;
+		//}
 		
 		descartes.push(aux);
 		corAtual = aux.getCor();

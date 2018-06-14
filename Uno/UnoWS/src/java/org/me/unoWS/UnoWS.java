@@ -51,6 +51,19 @@ public class UnoWS {
 
     }
 
+    //ATUALIZADO: metodo criado de acordo com a definicao do T2
+    @WebMethod(operationName = "preRegistro")
+    public int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2){
+        Jogador j1 = new Jogador(Id1, Nome1);
+        Jogador j2 = new Jogador(Id2, Nome2);
+        Partida p = new Partida(j1, j2);
+        System.out.println("Partida criada entre jogadores " + j1.getUsuario() + " e " + j2.getUsuario());
+        Dict.put(j1.getId(), p);
+        Dict.put(j2.getId(), p);
+        if(Id1 > id) id = Id1;
+        if(Id2 > id) id = Id2;
+        return 0;
+    }
     @WebMethod(operationName = "registraJogador")
     public int registraJogador(@WebParam(name = "nome") String Nome){
         if (JogadoresRegistrados.size() >= 1000) {
@@ -362,7 +375,7 @@ public class UnoWS {
     public int obtemCorAtiva(@WebParam(name = "id") int Id){
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
-                return -1;
+                return -2;
             }
         }
 
@@ -405,7 +418,7 @@ public class UnoWS {
     public int compraCarta(@WebParam(name = "id") int Id){
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
-                return -1;
+                return -2;
             }
         }
 
@@ -434,14 +447,21 @@ public class UnoWS {
                             p.setJogadorJaComprou(true);
                             //marca a carta comprada para verifica��o posterior caso ele queira descarta-la
                             p.setCartaComprada(aux);
-                            return 0;
+                            //ATUALIZADO: pula a jogada desse jogador após comprar a carta
+                            p.setVezJ1(!p.isVezJ1());
+                            return 1;
                         }
                         return -1;
                     } else {
+                        //esse codigo nao eh mais usado, mas vou deixar aqui para evitar bugs
                         //se o jogador j� comprou, pula a vez dele
                         p.setVezJ1(!p.isVezJ1());
                         p.setJogadorJaComprou(false);
                     }
+                }
+                //ATUALIZADO: nao eh a vez do jogador, retorna -3
+                else{
+                    return -3;
                 }
             } else {//mesma logica, mas para o J2
                 if (!p.isVezJ1()) {
@@ -454,7 +474,9 @@ public class UnoWS {
                             p.getJ2().getMao().add(aux);
                             p.setJogadorJaComprou(true);
                             p.setCartaComprada(aux);
-                            return 0;
+                            //ATUALIZADO: pula a jogada desse jogador após comprar a carta
+                            p.setVezJ1(!p.isVezJ1());
+                            return 1;
                         }
                         return -1;
                     } else {
@@ -463,11 +485,15 @@ public class UnoWS {
                         p.setJogadorJaComprou(false);
                     }
                 }
+                //ATUALIZADO: nao eh a vez do jogador, retorna -3
+                else{
+                    return -3;
+                }
             }
 
         }
 
-        return 0;
+        return -1;
     }
 
     @WebMethod(operationName = "jogaCarta")
@@ -488,7 +514,8 @@ public class UnoWS {
                 if (p.isVezJ1()) { //verifica se � a vez do J1
                     //verifica se a posi��o informada est� de acordo com a m�o do jogador
                     if (Pos < 0 || Pos >= p.getJ1().getMao().size()) {
-                        return -3;
+                        //ATUALIZADO: -4 para parametros errados.
+                        return -4;
                     } else {
                         //verifica se a carta que o jogador quer descartar pode mesmo ser descartada
                         boolean jogavel = p.verificaCartaJogavel(p.getJ1().getMao().get(Pos));
@@ -498,12 +525,15 @@ public class UnoWS {
                             Carta c = p.getJ1().getMao().get(Pos);
                             //verifica se a carta � um coringa e se for, se o n�mero da cor passado por parametro est� ok
                             if (c.getCor()[0] == '*' && (Cor > 4 || Cor < 0)) {
-                                return -3;
+                                //ATUALIZADO: -4 para parametros errados.
+                                return -4;
                             }
 
                             //verifica se a carta � um compra 4, se for, percorre a m�o do jogador
                             //verificando se n�o tem otura carta que pode ser jogada no lugar do compra 4
-                            if (c.getNumeracao().length > 1) {
+                            //ATUALIZADO: codigo comentado, pois agora o jogador pode jogar o C4 a
+                            //qualquer momento.
+                            /*if (c.getNumeracao().length > 1) {
                                 if (c.getNumeracao()[1] == '4') {
                                     for (int i = 0; i < p.getJ1().getMao().size(); i++) {
                                         Carta aux = p.getJ1().getMao().get(i);
@@ -518,7 +548,7 @@ public class UnoWS {
                                         }
                                     }
                                 }
-                            }
+                            }*/
 
                             //remove a carta da m�o do jogador, adiciona nos descartes,
                             //troca a vez do jogador, armazena a cor e a numera��o atual para fins posteriores
@@ -534,7 +564,8 @@ public class UnoWS {
                                 //+4
                                 if (c.getNumeracao()[1] == '4') {
                                     p.J2Compra4();
-                                    trocaVez = false;
+                                    //ATUALIZADO: C4 nao pula mais a vez do proximo jogador
+                                    //trocaVez = false;
                                 }
                                 switch (Cor) {
                                     case 0:
@@ -585,7 +616,8 @@ public class UnoWS {
             } else if (p.getJ2().getId() == Id) { //mesma logica, mas agora com o J2
                 if (!p.isVezJ1()) {
                     if (Pos < 0 || Pos >= p.getJ2().getMao().size()) {
-                        return -3;
+                        //ATUALIZADO: -4 para parametros errados.
+                        return -4;
                     } else {
                         boolean jogavel = p.verificaCartaJogavel(p.getJ2().getMao().get(Pos));
                         if (!jogavel) {
@@ -593,9 +625,11 @@ public class UnoWS {
                         } else {
                             Carta c = p.getJ2().getMao().get(Pos);
                             if (c.getCor()[0] == '*' && (Cor > 4 || Cor < 0)) {
-                                return -3;
+                                //ATUALIZADO: -4 para parametros errados.
+                                return -4;
                             }
-                            if (c.getNumeracao().length > 1) {
+                            //ATUALIZADO: retirada verificao de jogador possuir outra opcao de carta jogavel
+                            /*if (c.getNumeracao().length > 1) {
                                 if (c.getNumeracao()[1] == '4') {
                                     for (int i = 0; i < p.getJ2().getMao().size(); i++) {
                                         Carta aux = p.getJ2().getMao().get(i);
@@ -609,7 +643,7 @@ public class UnoWS {
                                         }
                                     }
                                 }
-                            }
+                            }*/
                             p.getJ2().getMao().remove(Pos);
                             p.getDescartes().push(c);
                             p.setCorAtual(c.getCor());
@@ -622,7 +656,8 @@ public class UnoWS {
                                 //+4
                                 if (c.getNumeracao()[1] == '4') {
                                     p.J1Compra4();
-                                    trocaVez = false;
+                                    //ATUALIZADO: C4 nao pula mais a vez do proximo jogador
+                                    //trocaVez = false;
                                 }
                                 switch (Cor) {
                                     case 0:
