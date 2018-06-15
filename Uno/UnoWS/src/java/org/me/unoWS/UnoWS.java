@@ -9,6 +9,7 @@ import classes.Baralho;
 import classes.Carta;
 import classes.Jogador;
 import classes.Partida;
+import classes.PreRegistro;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,41 +28,38 @@ public class UnoWS {
     /**
      * This is a sample web service operation
      */
-    @WebMethod(operationName = "hello")
-    public String hello(@WebParam(name = "name") String txt) {
-        return "Hello " + txt + " !";
-    }
 
     private static final long serialVersionUID = -3090969950757986494L;
     private Map<Integer, Partida> Dict;
     private LinkedList<Jogador> JogadoresRegistrados;
+    private LinkedList<PreRegistro> PreRegistros;
     private Jogador JogadorEmEspera;
 
     private int id = 0;
 
     
-    protected UnoWS() {
+    public UnoWS(){
 
         Dict = new HashMap<Integer, Partida>();
         JogadoresRegistrados = new LinkedList<>();
+        PreRegistros = new LinkedList<>();
         JogadorEmEspera = null;
     }
-
-    public static void main(String[] args) {
-
-    }
-
+    
     //ATUALIZADO: metodo criado de acordo com a definicao do T2
     @WebMethod(operationName = "preRegistro")
     public int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2){
         Jogador j1 = new Jogador(Id1, Nome1);
         Jogador j2 = new Jogador(Id2, Nome2);
-        Partida p = new Partida(j1, j2);
+        PreRegistro pre = new PreRegistro(j1, j2);
+        PreRegistros.add(pre);
+        /*Partida p = new Partida(j1, j2);
         System.out.println("Partida criada entre jogadores " + j1.getUsuario() + " e " + j2.getUsuario());
         Dict.put(j1.getId(), p);
         Dict.put(j2.getId(), p);
         if(Id1 > id) id = Id1;
         if(Id2 > id) id = Id2;
+        */
         return 0;
     }
     @WebMethod(operationName = "registraJogador")
@@ -70,11 +68,39 @@ public class UnoWS {
             return -2; //maximo de jog. alcancados
         }
         boolean existe = false;
+        boolean existePreRegistro = false;
+        boolean preRegistroIsJ2 = false;
         //percorre a lista verificando se ja existe jogador registrado com esse usuario
         if (JogadoresRegistrados.size() > 0) {
             for (int i = 0; i < JogadoresRegistrados.size(); i++) {
                 if (JogadoresRegistrados.get(i).getUsuario().equals(Nome)) {
                     existe = true;
+                }
+            }
+        }
+        //ATUALIZADO: vendo se os jogadores nao estao no pre-registros
+        if (PreRegistros.size() > 0) {
+            for (int i = 0; i < PreRegistros.size(); i++) {
+                if (PreRegistros.get(i) != null) {
+                    PreRegistro pre = PreRegistros.get(i);
+                    if(pre.getJogador1() != null && pre.getJogador1().getUsuario().equals(Nome)){                        
+                        Jogador j = pre.getJogador1();
+                        System.out.println("Jogador " + j.getUsuario() + " registrado.");
+                        Partida p = new Partida(j, null);
+                        Dict.put(j.getId(), p);
+                        JogadoresRegistrados.add(j);
+                        return j.getId();                        
+                    }
+                    if(pre.getJogador2() != null && pre.getJogador2().getUsuario().equals(Nome)){
+                        Jogador j = pre.getJogador2();
+                        System.out.println("Jogador " + j.getUsuario() + " registrado.");
+                        Partida p = Dict.get(pre.getJogador1().getId());
+                        p.setJ2(j);
+                        Dict.put(j.getId(), p);
+                        JogadoresRegistrados.add(j);
+                        PreRegistros.remove(i);
+                        return j.getId();
+                    }
                 }
             }
         }
