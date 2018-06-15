@@ -28,7 +28,6 @@ public class UnoWS {
     /**
      * This is a sample web service operation
      */
-
     private static final long serialVersionUID = -3090969950757986494L;
     private Map<Integer, Partida> Dict;
     private LinkedList<Jogador> JogadoresRegistrados;
@@ -37,18 +36,17 @@ public class UnoWS {
 
     private int id = 0;
 
-    
-    public UnoWS(){
+    public UnoWS() {
 
         Dict = new HashMap<Integer, Partida>();
         JogadoresRegistrados = new LinkedList<>();
         PreRegistros = new LinkedList<>();
         JogadorEmEspera = null;
     }
-    
+
     //ATUALIZADO: metodo criado de acordo com a definicao do T2
     @WebMethod(operationName = "preRegistro")
-    public int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2){
+    public int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2) {
         Jogador j1 = new Jogador(Id1, Nome1);
         Jogador j2 = new Jogador(Id2, Nome2);
         PreRegistro pre = new PreRegistro(j1, j2);
@@ -59,11 +57,12 @@ public class UnoWS {
         Dict.put(j2.getId(), p);
         if(Id1 > id) id = Id1;
         if(Id2 > id) id = Id2;
-        */
+         */
         return 0;
     }
+
     @WebMethod(operationName = "registraJogador")
-    public int registraJogador(@WebParam(name = "nome") String Nome){
+    public int registraJogador(@WebParam(name = "nome") String Nome) {
         if (JogadoresRegistrados.size() >= 1000) {
             return -2; //maximo de jog. alcancados
         }
@@ -83,23 +82,29 @@ public class UnoWS {
             for (int i = 0; i < PreRegistros.size(); i++) {
                 if (PreRegistros.get(i) != null) {
                     PreRegistro pre = PreRegistros.get(i);
-                    if(pre.getJogador1() != null && pre.getJogador1().getUsuario().equals(Nome)){                        
+                    if (pre.getJogador1() != null && pre.getJogador1().getUsuario().equals(Nome)) {
                         Jogador j = pre.getJogador1();
                         System.out.println("Jogador " + j.getUsuario() + " registrado.");
-                        Partida p = new Partida(j, null);
-                        Dict.put(j.getId(), p);
+                        //Partida p = new Partida(j, null);
+                        //Dict.put(j.getId(), p);
                         JogadoresRegistrados.add(j);
-                        return j.getId();                        
+                        return j.getId();
                     }
-                    if(pre.getJogador2() != null && pre.getJogador2().getUsuario().equals(Nome)){
+                    if (pre.getJogador2() != null && pre.getJogador2().getUsuario().equals(Nome)) {
                         Jogador j = pre.getJogador2();
                         System.out.println("Jogador " + j.getUsuario() + " registrado.");
-                        Partida p = Dict.get(pre.getJogador1().getId());
-                        p.setJ2(j);
-                        Dict.put(j.getId(), p);
-                        JogadoresRegistrados.add(j);
-                        PreRegistros.remove(i);
-                        return j.getId();
+                        //Partida p = Dict.get(pre.getJogador1().getId());
+                        Partida p;
+                        if (pre.getJogador1() != null) {
+                            p = new Partida(pre.getJogador1(), j);
+                            System.out.println("Partida criada entre jogadores " + pre.getJogador1().getUsuario() + " e " + j.getUsuario());
+
+                            Dict.put(j.getId(), p);
+                            Dict.put(pre.getJogador1().getId(), p);
+                            JogadoresRegistrados.add(j);
+                            PreRegistros.remove(i);
+                            return j.getId();
+                        }
                     }
                 }
             }
@@ -127,7 +132,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "encerraPartida")
-    public int encerraPartida(@WebParam(name = "id") int Id){
+    public int encerraPartida(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -1;
@@ -147,7 +152,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "temPartida")
-    public int temPartida(@WebParam(name = "id") int Id){
+    public int temPartida(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) { // se � o jogador em espera, retorna que n�o existe partida
             if (JogadorEmEspera.getId() == Id) {
                 return 0;
@@ -167,11 +172,33 @@ public class UnoWS {
             }
         }
 
+        //ATUALIZADO: ve se o jogador esta registrado, se sim, verifica se esta no pre-registros
+        if (JogadoresRegistrados.size() > 0) {
+            for (int i = 0; i < JogadoresRegistrados.size(); i++) {
+                if (JogadoresRegistrados.get(i).getId() == Id) {
+                    if (PreRegistros.size() > 0) {
+                        for (int j = 0; j < PreRegistros.size(); j++) {
+                            if (PreRegistros.get(j).getJogador1() != null) {
+                                if (PreRegistros.get(j).getJogador1().getId() == Id) {
+                                    return 0;
+                                }
+                            }
+                            if (PreRegistros.get(j).getJogador2() != null) {
+                                if (PreRegistros.get(j).getJogador2().getId() == Id) {
+                                    return 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return -1;
     }
 
     @WebMethod(operationName = "obtemOponente")
-    public String obtemOponente(@WebParam(name = "id") int Id){
+    public String obtemOponente(@WebParam(name = "id") int Id) {
         //busca a partida do jogador
         if (Dict.containsKey(Id)) {
             Partida p = Dict.get(Id);
@@ -188,7 +215,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "ehMinhaVez")
-    public int ehMinhaVez(@WebParam(name = "id") int Id){
+    public int ehMinhaVez(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -228,12 +255,34 @@ public class UnoWS {
             }
         }
 
+        //ATUALIZADO: Se jogador estiver nos registrados e pre-registros, retorna -2
+        if (JogadoresRegistrados.size() > 0) {
+            for (int i = 0; i < JogadoresRegistrados.size(); i++) {
+                if (JogadoresRegistrados.get(i).getId() == Id) {
+                    if (PreRegistros.size() > 0) {
+                        for (int j = 0; j < PreRegistros.size(); j++) {
+                            if (PreRegistros.get(j).getJogador1() != null) {
+                                if (PreRegistros.get(j).getJogador1().getId() == Id) {
+                                    return -2;
+                                }
+                            }
+                            if (PreRegistros.get(j).getJogador2() != null) {
+                                if (PreRegistros.get(j).getJogador2().getId() == Id) {
+                                    return -2;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         //TODO: implementar os WO.
         return -1;
     }
 
     @WebMethod(operationName = "obtemNumCartasBaralho")
-    public int obtemNumCartasBaralho(@WebParam(name = "id") int Id){
+    public int obtemNumCartasBaralho(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -256,7 +305,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemNumCartas")
-    public int obtemNumCartas(@WebParam(name = "id") int Id){
+    public int obtemNumCartas(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -309,7 +358,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "mostraMao")
-    public String mostraMao(@WebParam(name = "id") int Id){
+    public String mostraMao(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return "";
@@ -361,7 +410,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemCartaMesa")
-    public String obtemCartaMesa(@WebParam(name = "id") int Id){
+    public String obtemCartaMesa(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return "";
@@ -398,7 +447,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemCorAtiva")
-    public int obtemCorAtiva(@WebParam(name = "id") int Id){
+    public int obtemCorAtiva(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -441,7 +490,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "compraCarta")
-    public int compraCarta(@WebParam(name = "id") int Id){
+    public int compraCarta(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -484,9 +533,8 @@ public class UnoWS {
                         p.setVezJ1(!p.isVezJ1());
                         p.setJogadorJaComprou(false);
                     }
-                }
-                //ATUALIZADO: nao eh a vez do jogador, retorna -3
-                else{
+                } //ATUALIZADO: nao eh a vez do jogador, retorna -3
+                else {
                     return -3;
                 }
             } else {//mesma logica, mas para o J2
@@ -510,9 +558,8 @@ public class UnoWS {
                         p.setVezJ1(!p.isVezJ1());
                         p.setJogadorJaComprou(false);
                     }
-                }
-                //ATUALIZADO: nao eh a vez do jogador, retorna -3
-                else{
+                } //ATUALIZADO: nao eh a vez do jogador, retorna -3
+                else {
                     return -3;
                 }
             }
@@ -523,7 +570,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "jogaCarta")
-    public int jogaCarta(@WebParam(name = "id") int Id, @WebParam(name = "posicao") int Pos, @WebParam(name = "cor") int Cor){
+    public int jogaCarta(@WebParam(name = "id") int Id, @WebParam(name = "posicao") int Pos, @WebParam(name = "cor") int Cor) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -575,7 +622,6 @@ public class UnoWS {
                                     }
                                 }
                             }*/
-
                             //remove a carta da m�o do jogador, adiciona nos descartes,
                             //troca a vez do jogador, armazena a cor e a numera��o atual para fins posteriores
                             p.getJ1().getMao().remove(Pos);
@@ -637,7 +683,8 @@ public class UnoWS {
 
                     }
                 } else {
-                    return -4;
+                    //ATUALIZADO: retorna -3 para nao eh vez do jogador
+                    return -3;
                 }
             } else if (p.getJ2().getId() == Id) { //mesma logica, mas agora com o J2
                 if (!p.isVezJ1()) {
@@ -728,10 +775,32 @@ public class UnoWS {
                         }
                     }
                 } else {
-                    return -4;
+                    //ATUALIZADO: retorna -3 para nao eh vez do jogador
+                    return -3;
                 }
             }
         } else {
+            //ATUALIZADO: ve se o jogador esta registrado, se sim, verifica se esta no pre-registros
+            if (JogadoresRegistrados.size() > 0) {
+                for (int i = 0; i < JogadoresRegistrados.size(); i++) {
+                    if (JogadoresRegistrados.get(i).getId() == Id) {
+                        if (PreRegistros.size() > 0) {
+                            for (int j = 0; j < PreRegistros.size(); j++) {
+                                if (PreRegistros.get(j).getJogador1() != null) {
+                                    if (PreRegistros.get(j).getJogador1().getId() == Id) {
+                                        return -2;
+                                    }
+                                }
+                                if (PreRegistros.get(j).getJogador2() != null) {
+                                    if (PreRegistros.get(j).getJogador2().getId() == Id) {
+                                        return -2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return -1;
         }
 
@@ -739,7 +808,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemPontos")
-    public int obtemPontos(@WebParam(name = "id") int Id){
+    public int obtemPontos(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -752,9 +821,10 @@ public class UnoWS {
                 return -2;
             }
             //verifica se o vencedor � null e se empate � false, a partida n�o acabou
-            if (p.getVencedor() == null && p.isEmpate() == false) {
+            //ATUALIZADO: retirado os -3 pois no T2 nao tem isso.
+            /*if (p.getVencedor() == null && p.isEmpate() == false) {
                 return -3;
-            }
+            }*/
             if (p.getJ1().getId() == Id) {
                 return p.getPontuacaoJ1();
             } else {
@@ -766,7 +836,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemPontosOponente")
-    public int obtemPontosOponente(@WebParam(name = "id") int Id){
+    public int obtemPontosOponente(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -779,9 +849,10 @@ public class UnoWS {
                 return -2;
             }
             //verifica se o vencedor � null e se empate � false, a partida n�o acabou
-            if (p.getVencedor() == null && p.isEmpate() == false) {
+            //ATUALIZADO: retirado os -3 pois no T2 nao tem isso.
+            /*if (p.getVencedor() == null && p.isEmpate() == false) {
                 return -3;
-            }
+            }*/
             if (p.getJ1().getId() == Id) {
                 return p.getPontuacaoJ2();
             } else {
