@@ -67,8 +67,8 @@ public class UnoWS {
             return -2; //maximo de jog. alcancados
         }
         boolean existe = false;
-        boolean existePreRegistro = false;
-        boolean preRegistroIsJ2 = false;
+        //boolean existePreRegistro = false;
+        //boolean preRegistroIsJ2 = false;
         //percorre a lista verificando se ja existe jogador registrado com esse usuario
         if (JogadoresRegistrados.size() > 0) {
             for (int i = 0; i < JogadoresRegistrados.size(); i++) {
@@ -145,8 +145,22 @@ public class UnoWS {
             if (p == null) {
                 return -1;
             }
-            if(p.getJ1().getId() == Id) JogadoresRegistrados.remove(p.getJ1());
-            if(p.getJ2().getId() == Id) JogadoresRegistrados.remove(p.getJ2());
+            if(p.getJ1().getId() == Id){
+                JogadoresRegistrados.remove(p.getJ1());
+                if(p.getVencedor() == null && !p.isEmpate()){
+                    p.finalizarPartida();
+                    p.setVencedor(p.getJ2());
+                    p.setVencedorWo(true);
+                }
+            }
+            if(p.getJ2().getId() == Id){
+                JogadoresRegistrados.remove(p.getJ2());
+                if(p.getVencedor() == null && !p.isEmpate()){
+                    p.finalizarPartida();
+                    p.setVencedor(p.getJ1());
+                    p.setVencedorWo(true);
+                }
+            }
             Dict.remove(Id);
             //Dict.remove(p.getJ2().getId());
             return 0;
@@ -231,12 +245,18 @@ public class UnoWS {
             if (p == null) {
                 return -1;
             }
+            
+            if(obtemCorAtiva(Id) == 2){
+                int xxx = 0;
+            }
 
             //se existe um vencedor, verifica quem venceu
             if (p.getVencedor() != null) {
                 if (p.getVencedor().getId() == Id) {
+                    if(p.isVencedorWo()) return 5;
                     return 2;
                 } else {
+                    if(p.isVencedorWo()) return 6;
                     return 3;
                 }
             } else if (p.isEmpate()) {
@@ -510,7 +530,7 @@ public class UnoWS {
                 //verifica se � a vez do J1
                 if (p.isVezJ1()) {
                     //verifica se o jogador j� n�o comprou nessa rodada
-                    if (!p.isJogadorJaComprou()) {
+                    //if (!p.isJogadorJaComprou()) {
                         //busca a carta no topo do baralho
                         Carta aux = p.getBar().compraCarta();
                         //se a carta � null, � porque acabou o baralho
@@ -527,22 +547,24 @@ public class UnoWS {
                             p.setCartaComprada(aux);
                             //ATUALIZADO: pula a jogada desse jogador após comprar a carta
                             p.setVezJ1(!p.isVezJ1());
+                            //ATUALIZADO: se o baralho zera, acaba a partida
+                            if(p.getBar().getNumeroCartas() == 0) p.finalizarPartida();
                             return 1;
                         }
                         return -1;
-                    } else {
+                    /*} else {
                         //esse codigo nao eh mais usado, mas vou deixar aqui para evitar bugs
                         //se o jogador j� comprou, pula a vez dele
                         p.setVezJ1(!p.isVezJ1());
                         p.setJogadorJaComprou(false);
-                    }
+                    }*/
                 } //ATUALIZADO: nao eh a vez do jogador, retorna -3
                 else {
                     return -3;
                 }
             } else {//mesma logica, mas para o J2
                 if (!p.isVezJ1()) {
-                    if (!p.isJogadorJaComprou()) {
+                    //if (!p.isJogadorJaComprou()) {
                         Carta aux = p.getBar().compraCarta();
                         if (aux == null) {
                             p.finalizarPartida();
@@ -553,14 +575,15 @@ public class UnoWS {
                             p.setCartaComprada(aux);
                             //ATUALIZADO: pula a jogada desse jogador após comprar a carta
                             p.setVezJ1(!p.isVezJ1());
+                            if(p.getBar().getNumeroCartas() == 0) p.finalizarPartida();
                             return 1;
                         }
                         return -1;
-                    } else {
+                    /*} else {
                         //se o jogador j� comprou, pula a vez dele
                         p.setVezJ1(!p.isVezJ1());
                         p.setJogadorJaComprou(false);
-                    }
+                    }*/
                 } //ATUALIZADO: nao eh a vez do jogador, retorna -3
                 else {
                     return -3;

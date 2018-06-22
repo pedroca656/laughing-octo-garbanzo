@@ -10,24 +10,8 @@ public class Partida {
 	private int countCompras4; //contador de quantos +4 em sequencia foram jogados
 	private char[] corAtual; //variavel que armazena cor do topo da pilha de descartes
 	private char[] numeroAtual; //variavel que armazena numero no topo da pilha de desc.
-	
-	public int getPontuacaoJ1() {
-                calculaPontuacaoJ1();
-		return pontuacaoJ1;
-	}
+        private boolean vencedorWo;
 
-	public void setPontuacaoJ1(int pontuacaoJ1) {                
-		this.pontuacaoJ1 = pontuacaoJ1;
-	}
-
-	public int getPontuacaoJ2() {
-                calculaPontuacaoJ2();
-		return pontuacaoJ2;
-	}
-
-	public void setPontuacaoJ2(int pontuacaoJ2) {
-		this.pontuacaoJ2 = pontuacaoJ2;
-	}
 
 	private Jogador J1;
 	private int pontuacaoJ1;
@@ -57,6 +41,7 @@ public class Partida {
 		vencedor = null;
 		cartaComprada = null;
 		primeiraCartaCoringa = false;
+                vencedorWo = false;
 		
 		Bar = new Baralho();
 		Bar.embaralhar(J1.getId(), J2.getId());
@@ -79,8 +64,11 @@ public class Partida {
 				while(true) {
 					aux = Bar.compraCarta();
                                         if(aux.getNumeracao().length > 1){
-                                            if(aux.getNumeracao()[1] == '4') {
+                                            if(aux.getNumeracao()[0] == 'C') {
                                                 	descartes.push(aux);
+                                            }
+                                            else{
+                                                break;
                                             }
                                         }
 					else {
@@ -105,6 +93,35 @@ public class Partida {
 		corAtual = aux.getCor();
 		numeroAtual = aux.getNumeracao();
 	}
+
+    public boolean isVencedorWo() {
+        return vencedorWo;
+    }
+
+    public void setVencedorWo(boolean vencedorWo) {
+        this.vencedorWo = vencedorWo;
+    }
+        
+        
+        
+        	
+	public int getPontuacaoJ1() {
+                calculaPontuacaoJ1();
+		return pontuacaoJ1;
+	}
+
+	public void setPontuacaoJ1(int pontuacaoJ1) {                
+		this.pontuacaoJ1 = pontuacaoJ1;
+	}
+
+	public int getPontuacaoJ2() {
+                calculaPontuacaoJ2();
+		return pontuacaoJ2;
+	}
+
+	public void setPontuacaoJ2(int pontuacaoJ2) {
+		this.pontuacaoJ2 = pontuacaoJ2;
+	}
 	
 	public void J1Compra4() {
 		for(int i = 0; i < 4; i++) {		
@@ -115,7 +132,8 @@ public class Partida {
 				finalizarPartida();
 				J1.getMao().add(Bar.compraCarta());
 			}
-		}
+		}                
+                if(Bar.getNumeroCartas() == 0) finalizarPartida();
 	}
 	
 	public void J2Compra4() {
@@ -124,10 +142,11 @@ public class Partida {
 				J2.getMao().add(Bar.compraCarta());
 			}
 			else {
-				finalizarPartida();;
+				finalizarPartida();
 				J2.getMao().add(Bar.compraCarta());
 			}
 		}
+                if(Bar.getNumeroCartas() == 0) finalizarPartida();
 	}
 	
 	public void J1Compra2() {
@@ -140,6 +159,7 @@ public class Partida {
 				J1.getMao().add(Bar.compraCarta());
 			}
 		}
+                if(Bar.getNumeroCartas() == 0) finalizarPartida();
 	}
 	
 	public void J2Compra2() {
@@ -152,6 +172,7 @@ public class Partida {
 				J2.getMao().add(Bar.compraCarta());
 			}
 		}
+                if(Bar.getNumeroCartas() == 0) finalizarPartida();
 	}
 	
 	public void remontaBaralho() {
