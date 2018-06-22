@@ -46,7 +46,7 @@ public class UnoWS {
 
     //ATUALIZADO: metodo criado de acordo com a definicao do T2
     @WebMethod(operationName = "preRegistro")
-    public int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2) {
+    public synchronized int preRegistro(@WebParam(name = "nome1") String Nome1, @WebParam(name = "id1") int Id1, @WebParam(name = "nome2") String Nome2, @WebParam(name = "id2") int Id2) {
         Jogador j1 = new Jogador(Id1, Nome1);
         Jogador j2 = new Jogador(Id2, Nome2);
         PreRegistro pre = new PreRegistro(j1, j2);
@@ -62,7 +62,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "registraJogador")
-    public int registraJogador(@WebParam(name = "nome") String Nome) {
+    public synchronized int registraJogador(@WebParam(name = "nome") String Nome) {
         if (JogadoresRegistrados.size() >= 1000) {
             return -2; //maximo de jog. alcancados
         }
@@ -132,7 +132,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "encerraPartida")
-    public int encerraPartida(@WebParam(name = "id") int Id) {
+    public synchronized int encerraPartida(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -1;
@@ -145,14 +145,17 @@ public class UnoWS {
             if (p == null) {
                 return -1;
             }
-            p.finalizarPartida();
+            if(p.getJ1().getId() == Id) JogadoresRegistrados.remove(p.getJ1());
+            if(p.getJ2().getId() == Id) JogadoresRegistrados.remove(p.getJ2());
+            Dict.remove(Id);
+            //Dict.remove(p.getJ2().getId());
             return 0;
         }
         return -1;
     }
 
     @WebMethod(operationName = "temPartida")
-    public int temPartida(@WebParam(name = "id") int Id) {
+    public synchronized int temPartida(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) { // se � o jogador em espera, retorna que n�o existe partida
             if (JogadorEmEspera.getId() == Id) {
                 return 0;
@@ -198,7 +201,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemOponente")
-    public String obtemOponente(@WebParam(name = "id") int Id) {
+    public synchronized String obtemOponente(@WebParam(name = "id") int Id) {
         //busca a partida do jogador
         if (Dict.containsKey(Id)) {
             Partida p = Dict.get(Id);
@@ -215,7 +218,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "ehMinhaVez")
-    public int ehMinhaVez(@WebParam(name = "id") int Id) {
+    public synchronized int ehMinhaVez(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -282,7 +285,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemNumCartasBaralho")
-    public int obtemNumCartasBaralho(@WebParam(name = "id") int Id) {
+    public synchronized int obtemNumCartasBaralho(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -305,7 +308,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemNumCartas")
-    public int obtemNumCartas(@WebParam(name = "id") int Id) {
+    public synchronized int obtemNumCartas(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -331,7 +334,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemNumCartasOponente")
-    public int obtemNumCartasOponente(int Id) throws RemoteException {
+    public synchronized int obtemNumCartasOponente(int Id) throws RemoteException {
         //essa fun��o � igual a obtemNumCartas, mas retorna as cartas do oponente
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
@@ -358,7 +361,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "mostraMao")
-    public String mostraMao(@WebParam(name = "id") int Id) {
+    public synchronized String mostraMao(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return "";
@@ -410,7 +413,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemCartaMesa")
-    public String obtemCartaMesa(@WebParam(name = "id") int Id) {
+    public synchronized String obtemCartaMesa(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return "";
@@ -447,7 +450,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemCorAtiva")
-    public int obtemCorAtiva(@WebParam(name = "id") int Id) {
+    public synchronized int obtemCorAtiva(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -490,7 +493,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "compraCarta")
-    public int compraCarta(@WebParam(name = "id") int Id) {
+    public synchronized int compraCarta(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -570,7 +573,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "jogaCarta")
-    public int jogaCarta(@WebParam(name = "id") int Id, @WebParam(name = "posicao") int Pos, @WebParam(name = "cor") int Cor) {
+    public synchronized int jogaCarta(@WebParam(name = "id") int Id, @WebParam(name = "posicao") int Pos, @WebParam(name = "cor") int Cor) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -808,7 +811,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemPontos")
-    public int obtemPontos(@WebParam(name = "id") int Id) {
+    public synchronized int obtemPontos(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;
@@ -836,7 +839,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemPontosOponente")
-    public int obtemPontosOponente(@WebParam(name = "id") int Id) {
+    public synchronized int obtemPontosOponente(@WebParam(name = "id") int Id) {
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
                 return -2;

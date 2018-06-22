@@ -12,14 +12,16 @@ public class Partida {
 	private char[] numeroAtual; //variavel que armazena numero no topo da pilha de desc.
 	
 	public int getPontuacaoJ1() {
+                calculaPontuacaoJ1();
 		return pontuacaoJ1;
 	}
 
-	public void setPontuacaoJ1(int pontuacaoJ1) {
+	public void setPontuacaoJ1(int pontuacaoJ1) {                
 		this.pontuacaoJ1 = pontuacaoJ1;
 	}
 
 	public int getPontuacaoJ2() {
+                calculaPontuacaoJ2();
 		return pontuacaoJ2;
 	}
 
@@ -76,9 +78,11 @@ public class Partida {
 				descartes.push(aux);
 				while(true) {
 					aux = Bar.compraCarta();
-					if(aux.getNumeracao()[1] == '4') {
-						descartes.push(aux);
-					}
+                                        if(aux.getNumeracao().length > 1){
+                                            if(aux.getNumeracao()[1] == '4') {
+                                                	descartes.push(aux);
+                                            }
+                                        }
 					else {
 						break;
 					}
@@ -285,37 +289,47 @@ public class Partida {
 	}
 	
 	public void finalizarPartida() {
-		//percorre a m�o do jogador 1 e soma os pontos para o jogador 2
+		calculaPontuacaoJ1();
+		calculaPontuacaoJ2();
+		
+		//se a pontua��o for igual, � empate
+		if(pontuacaoJ2 == pontuacaoJ1) empate = true;
+		//se n�o, o jogador com maior pontua��o � o vencedor
+		else if(pontuacaoJ1 < pontuacaoJ2) vencedor = J1;
+		else vencedor = J2;
+	}
+        
+        public void calculaPontuacaoJ1(){
+            pontuacaoJ1 = 0;
+            //percorre a m�o do jogador 1 e soma os pontos para o jogador 1
 		for(int i = 0; i < J1.getMao().size(); i++) {
 			Carta aux = J1.getMao().get(i);
 			if(aux != null) {
 				if(aux.getNumeracao()[0] == 'C') {
-					pontuacaoJ2 += 50;
-				}
-				else if(aux.getNumeracao()[0] == 'P' || aux.getNumeracao()[0] == 'I') {
-					pontuacaoJ2 += 20;
-				}
-				else pontuacaoJ2 += aux.getNumeracao()[0] - '0';
-			}
-		}
-		//percorre a m�o jogador 2 e soma os pontos para o jogador 1
-		for(int i = 0; i < J2.getMao().size(); i++) {
-			Carta aux = J2.getMao().get(i);
-			if(aux != null) {
-				if(aux.getNumeracao()[0] == 'C') {
 					pontuacaoJ1 += 50;
 				}
-				else if(aux.getNumeracao()[0] == 'P' || aux.getNumeracao()[0] == 'I') {
+				else if(aux.getNumeracao()[0] == 'P' || aux.getNumeracao()[0] == 'I' || aux.getNumeracao()[0] == '+') {
 					pontuacaoJ1 += 20;
 				}
 				else pontuacaoJ1 += aux.getNumeracao()[0] - '0';
 			}
 		}
-		
-		//se a pontua��o for igual, � empate
-		if(pontuacaoJ2 == pontuacaoJ1) empate = true;
-		//se n�o, o jogador com maior pontua��o � o vencedor
-		else if(pontuacaoJ1 > pontuacaoJ2) vencedor = J1;
-		else vencedor = J2;
-	}
+        }
+        
+        public void calculaPontuacaoJ2(){
+            pontuacaoJ2 = 0;
+            //percorre a m�o jogador 2 e soma os pontos para o jogador 2
+		for(int i = 0; i < J2.getMao().size(); i++) {
+			Carta aux = J2.getMao().get(i);
+			if(aux != null) {
+				if(aux.getNumeracao()[0] == 'C') {
+					pontuacaoJ2 += 50;
+				}
+				else if(aux.getNumeracao()[0] == 'P' || aux.getNumeracao()[0] == 'I' || aux.getNumeracao()[0] == '+') {
+					pontuacaoJ2 += 20;
+				}
+				else pontuacaoJ2 += aux.getNumeracao()[0] - '0';
+			}
+		}
+        }
 }
