@@ -246,9 +246,6 @@ public class UnoWS {
                 return -1;
             }
             
-            if(obtemCorAtiva(Id) == 2){
-                int xxx = 0;
-            }
 
             //se existe um vencedor, verifica quem venceu
             if (p.getVencedor() != null) {
@@ -354,7 +351,7 @@ public class UnoWS {
     }
 
     @WebMethod(operationName = "obtemNumCartasOponente")
-    public synchronized int obtemNumCartasOponente(int Id) throws RemoteException {
+    public synchronized int obtemNumCartasOponente(int Id) {
         //essa fun��o � igual a obtemNumCartas, mas retorna as cartas do oponente
         if (JogadorEmEspera != null) {
             if (JogadorEmEspera.getId() == Id) {
@@ -525,6 +522,8 @@ public class UnoWS {
             if (p == null) {
                 return -1;
             }
+            
+            
             //verifica se o ID corresponde ao do jogador 1
             if (p.getJ1().getId() == Id) {
                 //verifica se � a vez do J1
@@ -655,6 +654,11 @@ public class UnoWS {
                             p.setCorAtual(c.getCor());
                             p.setNumeroAtual(c.getNumeracao());
                             p.setJogadorJaComprou(false);
+                            
+                            if(p.getJ1().getMao().size() == 0){
+                                p.finalizarPartida();
+                                p.setVencedor(p.getJ1());
+                            }
 
                             //agora a verificacao de cartas especiais
                             //coringa
@@ -748,6 +752,11 @@ public class UnoWS {
                             p.setCorAtual(c.getCor());
                             p.setNumeroAtual(c.getNumeracao());
                             p.setJogadorJaComprou(false);
+                            
+                            if(p.getJ2().getMao().size() == 0) {
+                                p.finalizarPartida();
+                                p.setVencedor(p.getJ2());
+                            }
 
                             //agora a verificacao de cartas especiais
                             //coringa
